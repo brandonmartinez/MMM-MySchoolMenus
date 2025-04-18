@@ -1,7 +1,9 @@
 Module.register("MMM-MySchoolMenus", {
   defaults: {
     numberOfWeeks: 4,
-    updateFrequency: 60 * 5
+    updateFrequency: 60 * 5,
+    menuItemWeightMinimum: 3,
+    menuItemWeightMaximum: 5
   },
   getStyles() {
     return ["template.css"]
@@ -12,7 +14,7 @@ Module.register("MMM-MySchoolMenus", {
   },
   getLunchMenu() {
     Log.info("Requesting lunch menu data for organizationId: " + this.config.organizationId + ", menuId: " + this.config.menuId + ", identifier: " + this.identifier);
-    this.sendSocketNotification("GET_LUNCH_MENU", { organizationId: this.config.organizationId, menuId: this.config.menuId, identifier: this.identifier });
+    this.sendSocketNotification("GET_LUNCH_MENU", { config: this.config, identifier: this.identifier });
   },
   getDom() {
     const wrapper = document.createElement("div")

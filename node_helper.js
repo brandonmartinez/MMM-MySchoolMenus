@@ -14,7 +14,7 @@ async function getLunchMenuData(organizationId, menuId, year, month) {
     }
 }
 
-async function getLunchMenu(organizationId, menuId) {
+async function getLunchMenu(organizationId, menuId, menuItemWeightMinimum, menuItemWeightMaximum) {
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth() + 1;
@@ -35,7 +35,7 @@ async function getLunchMenu(organizationId, menuId) {
 
         const menuItems = JSON.parse(item.setting).current_display;
         menuItems
-            .filter(menuItem => menuItem.type === 'recipe' && !!menuItem.weight && menuItem.weight > 2 && menuItem.weight < 5)
+            .filter(menuItem => menuItem.type === 'recipe' && !!menuItem.weight && menuItem.weight >= menuItemWeightMinimum && menuItem.weight <= menuItemWeightMaximum)
             .forEach(menuItem => {
                 entry.items.push(menuItem.name);
             });
@@ -53,8 +53,10 @@ module.exports = NodeHelper.create({
             Log.info("Received GET_LUNCH_MENU notification, getting data…");
             const AsyncJob = async () => {
                 const data = await getLunchMenu(
-                    payload.organizationId,
-                    payload.menuId
+                    payload.config.organizationId,
+                    payload.config.menuId,
+                    payload.config.menuItemWeightMinimum,
+                    payload.config.menuItemWeightMaximum
                 );
                 this.sendSocketNotification("NEW_LUNCH_MENU", { identifier: payload.identifier, data: data })
             }
