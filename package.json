@@ -1,0 +1,33 @@
+{
+    "name": "mmm-myschoolmenus",
+    "version": "1.0.0",
+    "description": "Gets school lunch menus from myschoolmenus.com",
+    "main": "MMM-MySchoolMenus.js",
+    "scripts": {
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
+        "test": "npm run lint"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/brandonmartinez/MMM-MySchoolMenus.git"
+    },
+    "keywords": [
+        "template"
+    ],
+    "author": "[Author]",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/brandonmartinez/MMM-MySchoolMenus/issues"
+    },
+    "homepage": "https://github.com/brandonmartinez/MMM-MySchoolMenus",
+    "devDependencies": {
+        "@eslint/js": "^9.10.0",
+        "@stylistic/eslint-plugin": "^2.7.2",
+        "eslint": "^9.10.0",
+        "globals": "^15.9.0"
+    },
+    "dependencies": {
+        "axios": "^1.8.4"
+    }
+}
