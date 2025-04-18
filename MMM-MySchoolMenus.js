@@ -1,73 +1,117 @@
 Module.register("MMM-MySchoolMenus", {
-
   defaults: {
-
+    numberOfWeeks: 4,
+    updateFrequency: 60 * 5
   },
   getStyles() {
     return ["template.css"]
   },
   start() {
-    this.templateContent = this.config.exampleContent
-
-    setInterval(() => this.renderContent(), 1000 * 60 * 5);
+    setTimeout(() => this.getLunchMenu(), 100);
+    setInterval(() => this.getLunchMenu(), 1000 * this.config.updateFrequency);
+  },
+  getLunchMenu() {
+    Log.info("Requesting lunch menu data for organizationId: " + this.config.organizationId + ", menuId: " + this.config.menuId + ", identifier: " + this.identifier);
+    this.sendSocketNotification("GET_LUNCH_MENU", { organizationId: this.config.organizationId, menuId: this.config.menuId, identifier: this.identifier });
   },
   getDom() {
     const wrapper = document.createElement("div")
-    wrapper.innerHTML = `<b>Title</b><br />${this.templateContent}`
+    wrapper.innerHTML = this.templateContent || "Loading...";
 
-    return wrapper
+    return wrapper;
   },
-  fetchMenuData(year, month) {
-    const ORGANIZATION_ID = this.config.organizationId;
-    const MENU_ID = this.config.menuId;;
-
-    const url = `https://www.myschoolmenus.com/api/organizations/${ORGANIZATION_ID}/menus/${MENU_ID}/year/${year}/month/${month}/date_overwrites`;
-    try {
-      const response = axios.get(url);
-      return response.data.data;
-    } catch (error) {
-      console.error(`Error fetching data for ${year}-${month}:`, error.message);
-      return [];
+  getHeader() {
+    return this.data.header;
+  },
+  socketNotificationReceived: function (notification, payload) {
+    if (notification === "NEW_LUNCH_MENU" && payload.identifier === this.identifier) {
+      Log.info("Received NEW_LUNCH_MENU notification, updating data…", payload.data);
+      this.renderContent(payload.data);
     }
   },
-  processMenuData() {
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth() + 1;
-    const nextMonth = currentMonth === 12 ? 1 : currentMonth + 1;
-    const nextYear = currentMonth === 12 ? currentYear + 1 : currentYear;
+  renderContent(data) {
+    if (!data || data.length === 0) {
+      this.templateContent = "No menu data available.";
+      this.updateDom();
+      return;
+    }
 
-    const currentMonthData = this.fetchMenuData(currentYear, currentMonth) || [];
-    const nextMonthData = this.fetchMenuData(nextYear, nextMonth) || [];
-    const allData = [...currentMonthData, ...nextMonthData];
+    const maxNumberOfWeeks = this.config.numberOfWeeks;
+    const currentDate = new Date();
+    const currentWeekStart = new Date(currentDate.setDate(currentDate.getDate() - currentDate.getDay()));
+    const maxDate = new Date(currentWeekStart);
+    maxDate.setDate(maxDate.getDate() + (maxNumberOfWeeks * 7));
 
-    const parsedData = [];
-    data.forEach(item => {
-      const entry = {
-        date: new Date(item.day),
-        items: []
-      };
-
-      const menuItems = JSON.parse(item.setting).current_display;
-      menuItems
-        .filter(menuItem => menuItem.type === 'recipe')
-        .forEach(menuItem => {
-          entry.items.push(menuItem.name);
-        });
-
-      parsedData.push(entry);
+    const filteredData = data.filter(item => {
+      const itemDate = new Date(item.date);
+      return itemDate >= currentWeekStart && itemDate < maxDate;
     });
 
-    return parsedData;
-  },
-  renderContent() {
-    const menuData = this.processMenuData();
-    const menuHtml = menuData.map(item => {
-      return `<div>
-        <strong>${item.date.toLocaleDateString()}</strong>
-        <ul>${item.items.map(i => `<li>${i}</li>`).join('')}</ul>
-      </div>`;
-    }).join('');
+    const daysOfWeek = ["M", "T", "W", "T", "F"];
+    let currentMonth = "";
+
+    const menuHtml = `
+      <table class="menu-calendar">
+      <thead>
+        <tr>
+        ${daysOfWeek.map(day => `<th class="day-header">${day}</th>`).join('')}
+        </tr>
+      </thead>
+      <tbody>
+        ${(() => {
+        const weeks = [];
+        let week = [];
+        let lastWeekStart = new Date(currentWeekStart);
+
+        for (let d = new Date(currentWeekStart); d < maxDate; d.setDate(d.getDate() + 1)) {
+          const dayOfWeek = d.getDay();
+          const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+          if (!isWeekend) {
+            const shortMonth = d.toLocaleString('default', { month: 'short' });
+            const dateString = d.getDate();
+
+            if (dayOfWeek === 1) {
+              if (week.length > 0) {
+                weeks.push(week);
+              }
+              week = [];
+              lastWeekStart = new Date(d);
+            }
+
+            const menuItems = filteredData.find(item => {
+              const itemDate = new Date(item.date);
+              return itemDate.toDateString() === d.toDateString();
+            });
+
+            const cellContent = menuItems
+              ? menuItems.items.join(', ')
+              : "";
+
+            const cellHtml = `
+            <td class="menu-cell">
+            ${dayOfWeek === 1 && currentMonth !== shortMonth ? `<strong>${shortMonth}</strong> ` : ""}
+            <span class="date">${dateString}</span>
+            ${cellContent}
+            </td>
+          `;
+
+            week.push(cellHtml);
+            currentMonth = shortMonth;
+          }
+        }
+
+        if (week.length > 0) {
+          weeks.push(week);
+        }
+
+        return weeks
+          .map(week => `<tr>${week.join('')}</tr>`)
+          .join('');
+      })()}
+      </tbody>
+      </table>
+    `;
 
     this.templateContent = menuHtml;
     this.updateDom();
