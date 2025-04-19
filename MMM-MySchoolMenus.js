@@ -92,9 +92,8 @@ Module.register("MMM-MySchoolMenus", {
 
             const cellHtml = `
             <td class="menu-cell">
-            ${dayOfWeek === 1 && currentMonth !== shortMonth ? `<strong>${shortMonth}</strong> ` : ""}
-            <span class="date">${dateString}</span>
-            ${cellContent}
+              <span class="date">${dayOfWeek === 1 && currentMonth !== shortMonth ? `<strong>${shortMonth}</strong> ` : ""}${dateString}</span>
+              <span class="menu-item">${cellContent}</span>
             </td>
           `;
 

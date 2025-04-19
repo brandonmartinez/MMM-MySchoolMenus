@@ -1,7 +1,37 @@
 .MMM-MySchoolMenus {
-
 }
 
 .MMM-MySchoolMenus .menu-calendar {
+  display: table;
+  width: 100%;
+  border-collapse: collapse;
+}
 
+.MMM-MySchoolMenus .menu-calendar th.day-header,
+.MMM-MySchoolMenus .menu-calendar td.menu-cell {
+  border: 1px solid #ccc;
+  text-align: center;
+  width: 14.28%; /* Ensures 7 equal columns for a calendar */
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.MMM-MySchoolMenus .menu-calendar th.day-header {
+  background-color: #f4f4f4;
+  font-weight: bold;
+}
+
+.MMM-MySchoolMenus .menu-calendar td.menu-cell {
+  vertical-align: top;
+  background-color: #fff;
+}
+
+.MMM-MySchoolMenus .menu-calendar td.menu-cell .date {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.MMM-MySchoolMenus .menu-calendar td.menu-cell .menu-item {
+  font-size: 0.9em;
+  color: #555;
 }
