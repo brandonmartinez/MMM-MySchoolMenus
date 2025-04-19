@@ -52,12 +52,24 @@ module.exports = NodeHelper.create({
         if (notification === "GET_LUNCH_MENU") {
             Log.info("Received GET_LUNCH_MENU notification, getting data…", payload);
             const AsyncJob = async () => {
-                const data = await getLunchMenu(
-                    payload.config.organizationId,
-                    payload.config.menuId,
-                    payload.config.menuItemWeightMinimum,
-                    payload.config.menuItemWeightMaximum
-                );
+                const data = [];
+                payload.config.menus.forEach(async (menu) => {
+                    const d = await getLunchMenu(
+                        menu.organizationId,
+                        menu.menuId,
+                        payload.config.menuItemWeightMinimum,
+                        payload.config.menuItemWeightMaximum
+                    );
+                    const m = {
+                        organizationId: menu.organizationId,
+                        menuId: menu.menuId,
+                        name: menu.name,
+                        data: d
+                    }
+                    data.push(m);
+                    Log.info("Fetched " + menu.name + " menu data; retrieved " + d.length + " items");
+                });
+
                 this.sendSocketNotification("NEW_LUNCH_MENU", { identifier: payload.identifier, data: data })
             }
             AsyncJob()
