@@ -40,7 +40,15 @@ Module.register("MMM-MySchoolMenus", {
 
     const maxNumberOfWeeks = this.config.numberOfWeeks;
     const currentDate = new Date();
-    const currentWeekStart = new Date(currentDate.setDate(currentDate.getDate() - currentDate.getDay()));
+    const currentWeekStart = new Date(currentDate);
+    const dayOfWeek = currentDate.getDay();
+    if (dayOfWeek === 0) { // Sunday
+      currentWeekStart.setDate(currentDate.getDate() + 1); // Move to Monday
+    } else if (dayOfWeek === 6) { // Saturday
+      currentWeekStart.setDate(currentDate.getDate() + 2); // Move to Monday
+    } else {
+      currentWeekStart.setDate(currentDate.getDate() - dayOfWeek); // Current week's Monday
+    }
     const maxDate = new Date(currentWeekStart);
     maxDate.setDate(maxDate.getDate() + (maxNumberOfWeeks * 7));
 
