@@ -51,8 +51,8 @@ module.exports = NodeHelper.create({
     async socketNotificationReceived(notification, payload) {
         if (notification === "GET_LUNCH_MENU") {
             Log.info("Received GET_LUNCH_MENU notification, getting data…", payload);
+            const data = [];
             const AsyncJob = async () => {
-                const data = [];
                 payload.config.menus.forEach(async (menu) => {
                     const d = await getLunchMenu(
                         menu.organizationId,
