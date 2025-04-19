@@ -28,7 +28,7 @@ Module.register("MMM-MySchoolMenus", {
   },
   socketNotificationReceived: function (notification, payload) {
     if (notification === "NEW_LUNCH_MENU" && payload.identifier === this.identifier) {
-      Log.info("Received NEW_LUNCH_MENU notification, updating data…", payload.data);
+      Log.info("Received NEW_LUNCH_MENU notification, updating data…", payload);
       this.renderContent(payload.data);
     }
   },

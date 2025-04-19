@@ -54,7 +54,8 @@ module.exports = NodeHelper.create({
             const data = [];
             const AsyncJob = async () => {
                 payload.config.menus.forEach(async (menu) => {
-                    const d = await getLunchMenu(
+                    Log.info("Getting data for " + menu.name, menu);
+                    const lunchMenu = await getLunchMenu(
                         menu.organizationId,
                         menu.menuId,
                         payload.config.menuItemWeightMinimum,
@@ -64,7 +65,7 @@ module.exports = NodeHelper.create({
                         organizationId: menu.organizationId,
                         menuId: menu.menuId,
                         name: menu.name,
-                        data: d
+                        data: lunchMenu
                     }
                     data.push(m);
                     Log.info("Fetched " + menu.name + " menu data; retrieved " + d.length + " items");
