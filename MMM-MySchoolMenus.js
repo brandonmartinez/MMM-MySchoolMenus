@@ -44,20 +44,22 @@ Module.register("MMM-MySchoolMenus", {
     }
 
     const maxDays = this.config.numberOfWeeks * 5;
+    const menuConfig = {};
+    this.config.menus.forEach(menu => menuConfig[menu.name] = menu);
     const today = new Date();
     const agenda = {};
 
     // Combine all menu items by date
     data.forEach(entry => {
       entry.data.forEach(menu => {
-      const menuDate = new Date(menu.date);
-      if (menuDate >= today) {
-        const dateKey = menuDate.toISOString().split("T")[0];
-        if (!agenda[dateKey]) {
-        agenda[dateKey] = [];
+        const menuDate = new Date(menu.date);
+        if (menuDate >= today) {
+          const dateKey = menuDate.toISOString().split("T")[0];
+          if (!agenda[dateKey]) {
+            agenda[dateKey] = [];
+          }
+          agenda[dateKey].push(`<span class="menu ${menuDate === today ? "today" : ""}" style="color: ${menuConfig[entry.name].color || "auto"};"><span class="menu-name">${entry.name}:</span> <span class="menu-items">${menu.items.join(", ")}</span></span>`);
         }
-        agenda[dateKey].push(`<span class="menu"><span class="menu-name">${entry.name}:</span> <span class="menu-items">${menu.items.join(", ")}</span></span>`);
-      }
       });
     });
 
