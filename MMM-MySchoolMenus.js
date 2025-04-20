@@ -1,10 +1,14 @@
 Module.register("MMM-MySchoolMenus", {
   defaults: {
-    numberOfWeeks: 4,
+    numberOfWeeks: 2,
     updateFrequency: 60 * 5,
     menuItemWeightMinimum: 3,
     menuItemWeightMaximum: 5,
     menus: []
+  },
+  logInfo() {
+    const args = ["MMM-MySchoolMenus", ...arguments]
+    Log.info(...args);
   },
   getStyles() {
     return ["template.css"]
@@ -14,7 +18,7 @@ Module.register("MMM-MySchoolMenus", {
     setInterval(() => this.getLunchMenu(), 1000 * this.config.updateFrequency);
   },
   getLunchMenu() {
-    Log.info("Requesting lunch menu data for identifier: " + this.identifier);
+    this.logInfo("Requesting lunch menu data for identifier: " + this.identifier);
     this.sendSocketNotification("GET_LUNCH_MENU", { config: this.config, identifier: this.identifier });
   },
   getDom() {
@@ -28,7 +32,7 @@ Module.register("MMM-MySchoolMenus", {
   },
   socketNotificationReceived: function (notification, payload) {
     if (notification === "NEW_LUNCH_MENU" && payload.identifier === this.identifier) {
-      Log.info("Received NEW_LUNCH_MENU notification, updating data…", payload);
+      this.logInfo("Received NEW_LUNCH_MENU notification, updating data…", payload);
       this.renderContent(payload.data);
     }
   },
@@ -39,7 +43,7 @@ Module.register("MMM-MySchoolMenus", {
       return;
     }
 
-    const maxDays = this.config.numberOfWeeks * 7;
+    const maxDays = this.config.numberOfWeeks * 5;
     const today = new Date();
     const agenda = {};
 
@@ -52,7 +56,7 @@ Module.register("MMM-MySchoolMenus", {
         if (!agenda[dateKey]) {
         agenda[dateKey] = [];
         }
-        agenda[dateKey].push(`${entry.name}: ${menu.items.join(", ")}`);
+        agenda[dateKey].push(`<span class="menu"><span class="menu-name">${entry.name}:</span> <span class="menu-items">${menu.items.join(", ")}</span></span>`);
       }
       });
     });
@@ -67,8 +71,8 @@ Module.register("MMM-MySchoolMenus", {
       const date = new Date(dateKey);
       const shortMonth = date.toLocaleString("default", { month: "short" });
       const day = date.getDate();
-      const items = agenda[dateKey].map(item => `<span class="menu-item">${item}</span>`).join("<br>");
-      return `<div class="menu-day"><span class="menu-date">${shortMonth} ${day}</span><br>${items}</div>`;
+      const items = agenda[dateKey].join("");
+      return `<div class="menu-day"><span class="menu-date">${shortMonth} ${day}</span>${items}</div>`;
     }).join("");
 
     this.updateDom();

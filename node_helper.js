@@ -2,9 +2,14 @@ const NodeHelper = require("node_helper")
 const axios = require("axios");
 const Log = require("logger");
 
+function logInfo() {
+    const args = ["MMM-MySchoolMenus", ...arguments]
+    Log.info(...args);
+}
+
 async function getLunchMenuData(organizationId, menuId, year, month) {
     const url = `https://www.myschoolmenus.com/api/organizations/${organizationId}/menus/${menuId}/year/${year}/month/${month}/date_overwrites`;
-    Log.info(`Fetching data from URL: ${url}`);
+    logInfo(`Fetching data from URL: ${url}`);
     try {
         const response = await axios.get(url);
         return response.data.data;
@@ -15,6 +20,7 @@ async function getLunchMenuData(organizationId, menuId, year, month) {
 }
 
 async function getLunchMenu(organizationId, menuId, menuItemWeightMinimum, menuItemWeightMaximum) {
+    logInfo(`Getting menu information for:`, ...arguments);
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth() + 1;
@@ -24,16 +30,18 @@ async function getLunchMenu(organizationId, menuId, menuItemWeightMinimum, menuI
     const nextMonthData = await getLunchMenuData(organizationId, menuId, nextYear, nextMonth) || [];
     const allData = [...currentMonthData, ...nextMonthData];
 
-    Log.info(`Fetched ${allData.length} menu items for ${currentYear}-${currentMonth} and ${nextYear}-${nextMonth}`);
+    logInfo(`Fetched ${allData.length} menu items for ${currentYear}-${currentMonth} and ${nextYear}-${nextMonth}`);
 
     const parsedData = [];
     allData.forEach(item => {
+        logInfo(`Processing data for menu item on ${item.day}`);
         const entry = {
             date: new Date(item.day),
             items: []
         };
 
         const menuItems = JSON.parse(item.setting).current_display;
+        // logInfo(`Menu items for  ${item.day}`, menuItems);
         menuItems
             .filter(menuItem => menuItem.type === 'recipe' && !!menuItem.weight && menuItem.weight >= menuItemWeightMinimum && menuItem.weight <= menuItemWeightMaximum)
             .forEach(menuItem => {
@@ -43,23 +51,24 @@ async function getLunchMenu(organizationId, menuId, menuItemWeightMinimum, menuI
         parsedData.push(entry);
     });
 
-    Log.info(`Parsed ${parsedData.length} menu entries`);
+    logInfo(`Parsed ${parsedData.length} menu entries`, parsedData);
     return parsedData;
 }
 
 module.exports = NodeHelper.create({
     async socketNotificationReceived(notification, payload) {
         if (notification === "GET_LUNCH_MENU") {
-            Log.info("Received GET_LUNCH_MENU notification, getting data…", payload);
-            const data = [];
+            logInfo("Received GET_LUNCH_MENU notification, getting data…", payload);
             const AsyncJob = async () => {
-                payload.config.menus.forEach(async (menu) => {
-                    Log.info("Getting data for " + menu.name, menu);
+                const processedMenuItems = [];
+
+                for (const menu of payload.config.menus) {
+                    logInfo("Getting data for " + menu.name, menu);
                     const lunchMenu = await getLunchMenu(
                         menu.organizationId,
                         menu.menuId,
-                        payload.config.menuItemWeightMinimum,
-                        payload.config.menuItemWeightMaximum
+                        menu.menuItemWeightMinimum || payload.config.menuItemWeightMinimum,
+                        menu.menuItemWeightMaximum || payload.config.menuItemWeightMaximum
                     );
                     const m = {
                         organizationId: menu.organizationId,
@@ -67,11 +76,13 @@ module.exports = NodeHelper.create({
                         name: menu.name,
                         data: lunchMenu
                     }
-                    data.push(m);
-                    Log.info("Fetched " + menu.name + " menu data; retrieved " + d.length + " items");
-                });
+                    processedMenuItems.push(m);
+                    // logInfo("Fetched " + menu.name + " menu data", m);
+                }
 
-                this.sendSocketNotification("NEW_LUNCH_MENU", { identifier: payload.identifier, data: data })
+                const newPayload = { identifier: payload.identifier, data: processedMenuItems };
+                logInfo(`Sending NEW_LUNCH_MENU notification`, newPayload);
+                this.sendSocketNotification("NEW_LUNCH_MENU", newPayload);
             }
             AsyncJob()
         }

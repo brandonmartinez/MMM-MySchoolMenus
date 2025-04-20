@@ -1,2 +1,28 @@
+.region.right .MMM-MySchoolMenus {
+    float: right;
+}
+
 .MMM-MySchoolMenus {
+
+}
+
+.MMM-MySchoolMenus .menu-day {
+
+}
+
+.MMM-MySchoolMenus .menu-day .menu-date {
+    display: block;
+    font-weight: bold;
+}
+
+.MMM-MySchoolMenus .menu-day .menu {
+    display: block;
+}
+
+.MMM-MySchoolMenus .menu-day .menu .menu-name {
+    font-weight: bold;
+}
+
+.MMM-MySchoolMenus .menu-day .menu .menu-items {
+
 }
