@@ -70,7 +70,7 @@ Module.register("MMM-MySchoolMenus", {
     this.templateContent = sortedDates.map(dateKey => {
       const date = new Date(dateKey);
       const shortMonth = date.toLocaleString("default", { month: "short" });
-      const day = date.getDate();
+      const day = date.getDate() + 1;
       const items = agenda[dateKey].join("");
       return `<div class="menu-day"><span class="menu-date">${shortMonth} ${day}</span>${items}</div>`;
     }).join("");
